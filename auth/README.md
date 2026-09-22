@@ -1,6 +1,6 @@
-# Account Service
+# Auth Service
 
-Микросервис для управления аккаунтами пользователей.
+Микросервис аутентификации пользователей (gRPC, JWT access/refresh токены).
 
 ## Быстрый старт
 
@@ -29,7 +29,7 @@ cp .env.example .env
 # Сборка и запуск
 task run
 
-# Только запуск
+# Только запуск (если уже собран)
 task run-only
 ```
 
@@ -37,10 +37,10 @@ task run-only
 
 ```bash
 # Сборка образа
-docker build -t account-service .
+docker build -t auth-service .
 
 # Запуск контейнера
-docker run -p 50051:50051 --env-file .env account-service
+docker run -p 50052:50052 --env-file .env auth-service
 ```
 
 ### Полезные команды

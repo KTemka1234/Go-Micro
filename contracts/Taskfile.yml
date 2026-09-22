@@ -4,7 +4,7 @@ version: "3"
 vars:
   PROTO_ROOT: "{{.TASKFILE_DIR}}"
   DOCKER_IMAGE: proto-builder
-  PROTO_DIRS: account pagination
+  PROTO_DIRS: account pagination auth
 
 tasks:
   docker-build:
