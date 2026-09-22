@@ -1,0 +1,130 @@
+# Go application Taskfile
+# https://taskfile.dev
+version: "3"
+
+vars:
+  APP_NAME: '{{.APP_NAME | default "account"}}'
+  EXT: '{{if eq OS "windows"}}.exe{{end}}'
+  BINARY_NAME: '{{.BINARY_NAME | default (print "bin/" .APP_NAME .EXT)}}'
+  MAIN_PATH: '{{.MAIN_PATH | default "./cmd"}}'
+  VERSION:
+    sh: git describe --tags --always --dirty 2>/dev/null || echo "dev"
+  BUILD_TIME: '{{now | date "2006-01-02_15:04:05"}}'
+  LDFLAGS: -ldflags "-X main.Version={{.VERSION}} -X main.BuildTime={{.BUILD_TIME}}"
+
+tasks:
+  default:
+    cmds:
+      - task: build
+
+  build:
+    desc: Build the application
+    cmds:
+      - echo "Building {{.APP_NAME}}..."
+      - mkdir -p bin
+      - go build {{.LDFLAGS}} -o {{.BINARY_NAME}} {{.MAIN_PATH}}
+
+  run:
+    desc: Build and run the application
+    cmds:
+      - task: clean
+      - task: build
+      - task: run-only
+
+  run-only:
+    desc: Run the application (without building)
+    cmds:
+      - echo "Running {{.APP_NAME}}..."
+      - ./{{.BINARY_NAME}}
+
+  deps:
+    desc: Install dependencies
+    cmds:
+      - echo "Installing dependencies..."
+      - go mod download
+      - go mod tidy
+
+  deps-update:
+    desc: Update dependencies
+    cmds:
+      - echo "Updating dependencies..."
+      - go get -u ./...
+      - go mod tidy
+
+  fmt:
+    desc: Format code
+    cmds:
+      - echo "Formatting code..."
+      - gofmt -s -w .
+      - gofumpt -l -w -extra .
+      - goimports -l -w .
+
+  lint:
+    desc: Run linter
+    cmds:
+      - echo "Running linter..."
+      - golangci-lint run --timeout=10m -v ./...
+
+  test:
+    desc: Run tests
+    cmds:
+      - echo "Running tests..."
+      - go test -v ./...
+
+  test-coverage:
+    desc: Run tests with coverage report
+    cmds:
+      - echo "Running tests with coverage..."
+      - go test -v -coverprofile=coverage.out ./...
+      - go tool cover -html=coverage.out -o coverage.html
+      - echo "'Coverage report generated:' coverage.html"
+
+  bench:
+    desc: Run benchmarks
+    cmds:
+      - echo "Running benchmarks..."
+      - go test -bench=. ./...
+
+  clean:
+    desc: Clean build artifacts
+    cmds:
+      - echo "Cleaning build artifacts..."
+      - rm -rf bin/
+      - rm -f coverage.out coverage.html
+
+  install:
+    desc: Install the application
+    deps: [build]
+    cmds:
+      - echo "Installing {{.APP_NAME}}..."
+      - go install {{.LDFLAGS}} {{.MAIN_PATH}}
+
+  generate-mocks:
+    desc: Generate mocks
+    cmds:
+      - echo "Generating mocks..."
+      - go install go.uber.org/mock/mockgen@latest
+      - mockgen -source=internal/service/service.go -destination=internal/service/mocks/mocks.go -package=mocks
+
+  docs:
+    desc: Generate documentation
+    cmds:
+      - echo "Generating documentation..."
+      - godoc -http=:6060
+
+  dev:
+    desc: "Development workflow: fmt, lint, test, build"
+    cmds:
+      - task: fmt
+      - task: lint
+      - task: test
+      - task: build
+
+  ci:
+    desc: "CI/CD workflow: deps, fmt, lint, test, build"
+    cmds:
+      - task: deps
+      - task: fmt
+      - task: lint
+      - task: test
+      - task: build

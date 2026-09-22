@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package account;
+option go_package = "github.com/KTemka1234/go-micro/contracts/account/go;account";
+
+import "google/protobuf/empty.proto";
+import "account_model.proto";
+import "pagination/pagination.proto";
+
+service Account {
+    rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
+    rpc GetUser(GetUserRequest) returns (GetUserResponse);
+    rpc GetUsers(GetUsersRequest) returns (GetUsersResponse);
+    rpc DeleteUser(DeleteUserRequest) returns (google.protobuf.Empty);
+    rpc UpdateUser(UpdateUserRequest) returns (google.protobuf.Empty);
+}
+
+message CreateUserRequest {
+    account.CreateUser user = 1;
+}
+
+message CreateUserResponse {
+    account.User user = 1;
+}
+
+message GetUserRequest {
+    uint64 user_id = 1;
+}
+
+message GetUserResponse {
+    account.User user = 1;
+}
+
+message GetUsersRequest {
+    pagination.Pagination pagination = 1;
+}
+
+message GetUsersResponse {
+    repeated User users = 1;
+    pagination.Pagination pagination = 2;
+}
+
+message DeleteUserRequest {
+    uint64 user_id = 1;
+}
+
+message UpdateUserRequest {
+    uint64 user_id = 1;
+    account.User user = 2;
+}

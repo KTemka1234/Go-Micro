@@ -1,0 +1,46 @@
+# https://taskfile.dev
+version: "3"
+
+vars:
+  PROTO_ROOT: "{{.TASKFILE_DIR}}"
+  DOCKER_IMAGE: proto-builder
+  PROTO_DIRS: account pagination
+
+tasks:
+  docker-build:
+    desc: Build the proto-builder Docker image
+    cmds:
+      - docker build -t {{.DOCKER_IMAGE}} {{.PROTO_ROOT}}
+
+  gen:
+    desc: Generate Go code from .proto files
+    deps: [docker-build]
+    cmds:
+      - |
+        docker run --rm -v {{.PROTO_ROOT}}:/app {{.DOCKER_IMAGE}} \
+        bash -c '
+          set -e
+          for dir in {{.PROTO_DIRS}}; do
+            echo ">> Processing $dir"
+            mkdir -p /app/$dir/go
+            cd /app/$dir
+            for file in *.proto; do
+              echo "   Generating $dir/$file"
+              protoc \
+                -I . \
+                -I /app \
+                -I /usr/local/include/googleapis \
+                --go_out=go \
+                --go_opt=paths=source_relative \
+                --go-grpc_out=go \
+                --go-grpc_opt=paths=source_relative \
+                $file
+            done
+          done
+        '
+
+  clean:
+    desc: Remove generated Go code
+    dir: "{{.PROTO_ROOT}}"
+    cmds:
+      - find {{.PROTO_DIRS}} -type d -name go -exec rm -rf {} +
