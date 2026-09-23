@@ -8,17 +8,16 @@ import (
 )
 
 type Config struct {
-	ServiceName string `env:"SERVICE_NAME" env-default:"auth-service"`
+	ServiceName string `env:"SERVICE_NAME" env-default:"gateway-service"`
 	AppEnv      string `env:"APP_ENV" env-default:"development"`
 	Host        string `env:"GRPC_HOST" env-default:"localhost"`
-	Port        int    `env:"GRPC_PORT" env-default:"50052"`
+	Port        int    `env:"GRPC_PORT" env-default:"50051"`
 	LogLevel    string `env:"LOG_LEVEL" env-default:"info"`
 
-	DbDsn string `env:"DB_DSN"`
-
-	JwtSecret             string `env:"JWT_SECRET"`
-	AccessTokenTTLMinutes int    `env:"ACCESS_TOKEN_TTL_MINUTES" env-default:"60"`
-	RefreshTokenTTLDays   int    `env:"REFRESH_TOKEN_TTL_DAYS" env-default:"30"`
+	AccountGrpcHost     string `env:"ACCOUNT_GRPC_HOST"`
+	AuthGrpcHost        string `env:"AUTH_GRPC_HOST"`
+	TransactionGrpcHost string `env:"TRANSACTION_GRPC_HOST"`
+	JwtSecret           string `env:"JWT_SECRET"`
 }
 
 func Load() (*Config, error) {
